@@ -1,32 +1,49 @@
-import axios from 'axios'
+import axios from "axios"
 
-// Base Axios instance pointing at the backend API
+// Backend URL
+const BASE_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api"
+    : "https://noxmovies.onrender.com/api"
+
+// Axios instance
 const api = axios.create({
-  baseURL: import.meta.env.MODE === 'development'
-    ? 'http://localhost:5000/api'
-    : 'https://noxmovies.onrender.com/api',
+  baseURL: BASE_URL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: 60000, // 60 seconds to avoid Render cold-start timeout
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 })
 
-// Request interceptor — attach auth tokens here if needed
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
-    if (token) config.headers.Authorization = `Bearer ${token}`
+    const token = localStorage.getItem("token")
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
     return config
   },
   (error) => Promise.reject(error)
 )
 
-// Response interceptor — handle global errors here
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error)
+    if (error.code === "ECONNABORTED") {
+      console.error("Request timeout — backend may be waking up (Render cold start)")
+    }
+
+    if (error.response) {
+      console.error("API Response Error:", error.response.data)
+    } else {
+      console.error("API Network Error:", error.message)
+    }
+
     return Promise.reject(error)
   }
 )
