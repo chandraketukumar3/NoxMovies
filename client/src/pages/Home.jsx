@@ -22,12 +22,16 @@ const GENRE_ROWS = [
 const Home = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { trending, loading } = useSelector((state) => state.movies)
+
+  // SAFE trending default
+  const { trending = [], loading } = useSelector((state) => state.movies)
+
   const favoriteIds = useSelector((state) =>
     new Set(state.favorites.items.map((m) => m.id))
   )
+
   const [activeTrailer, setActiveTrailer] = useState(null)
-  
+
   // Infinite scroll states
   const [page, setPage] = useState(2)
   const [moreMovies, setMoreMovies] = useState([])
@@ -41,14 +45,24 @@ const Home = () => {
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return
+
     setLoadingMore(true)
+
     try {
       const res = await api.get(`/movies/trending`, { params: { page } })
-      if (res.data && res.data.length > 0) {
+
+      const results = Array.isArray(res?.data) ? res.data : []
+
+      if (results.length > 0) {
         setMoreMovies((prev) => {
-          const newMovies = res.data.filter(m => !prev.some(p => p.id === m.id) && !trending.some(t => t.id === m.id))
+          const newMovies = results.filter(
+            (m) =>
+              !prev.some((p) => p.id === m.id) &&
+              !trending.some((t) => t.id === m.id)
+          )
           return [...prev, ...newMovies]
         })
+
         setPage((p) => p + 1)
       } else {
         setHasMore(false)
@@ -63,12 +77,19 @@ const Home = () => {
 
   const { sentinelRef } = useInfiniteScroll(loadMore, hasMore, loadingMore)
 
-  const heroBanner = trending[0] || null
-  const popular = trending.slice(1, 13)
+  // SAFE hero banner
+  const heroBanner =
+    Array.isArray(trending) && trending.length > 0 ? trending[0] : null
 
+  // SAFE slice
+  const popular = Array.isArray(trending) ? trending.slice(1, 13) : []
+
+  // SAFE genre rows
   const genreRows = GENRE_ROWS.map(({ label, id }) => ({
     label,
-    movies: trending.filter((m) => m.genre_ids?.includes(id)),
+    movies: Array.isArray(trending)
+      ? trending.filter((m) => m.genre_ids?.includes(id))
+      : [],
   }))
 
   const handleTrailerClick = (movie) => {
@@ -110,26 +131,41 @@ const Home = () => {
               />
             )
         )}
-        
-        {/* Infinite Scroll Discover More Section */}
+
+        {/* Discover More Section */}
         {moreMovies.length > 0 && (
           <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-4">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-wide uppercase mb-4" style={{ color: 'var(--text-primary)' }}>
+            <h2
+              className="text-xl sm:text-2xl font-bold tracking-wide uppercase mb-4"
+              style={{ color: 'var(--text-primary)' }}
+            >
               Discover More
             </h2>
+
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {moreMovies.map((movie, index) => (
-                <div key={`${movie.id}-${index}`} className="animate-fade-in shrink-0 flex justify-center">
-                  <MovieCard movie={movie} onTrailerClick={handleTrailerClick} />
+                <div
+                  key={`${movie.id}-${index}`}
+                  className="animate-fade-in shrink-0 flex justify-center"
+                >
+                  <MovieCard
+                    movie={movie}
+                    onTrailerClick={handleTrailerClick}
+                  />
                 </div>
               ))}
             </div>
           </div>
         )}
-        
+
         {/* Infinite scroll sentinel */}
         <div ref={sentinelRef} className="h-10 w-full" aria-hidden="true" />
-        {loadingMore && <div className="py-4 flex justify-center"><Loader /></div>}
+
+        {loadingMore && (
+          <div className="py-4 flex justify-center">
+            <Loader />
+          </div>
+        )}
       </div>
 
       {activeTrailer && (
