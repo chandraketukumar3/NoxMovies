@@ -16,21 +16,13 @@ const app = express()
 
 connectDB()
 
-// Dynamic CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://noxxmovies.vercel.app',
-  /\.vercel\.app$/
-]
-
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.some(o => typeof o === 'string' ? o === origin : o.test(origin))) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+  origin: [
+    'http://localhost:5173',
+    'https://noxxmovies.vercel.app',
+    'https://nox-movies-weld.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }))
 
