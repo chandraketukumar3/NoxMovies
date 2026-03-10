@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { getTrending, getGenres } from '../../services/moviesService'
+import { getTrending, getGenres, getMovies, getTVShows, getTrendingPeople } from '../../services/moviesService'
 
 export const fetchTrending = createAsyncThunk(
   'movies/fetchTrending',
@@ -44,6 +44,42 @@ export const fetchGenres = createAsyncThunk(
         return false
       }
     },
+  }
+)
+
+export const fetchMovies = createAsyncThunk(
+  'movies/fetchMovies',
+  async (page = 1, { rejectWithValue }) => {
+    try {
+      const response = await getMovies(page)
+      return response.data
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to fetch movies')
+    }
+  }
+)
+
+export const fetchTV = createAsyncThunk(
+  'movies/fetchTV',
+  async (page = 1, { rejectWithValue }) => {
+    try {
+      const response = await getTVShows(page)
+      return response.data
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to fetch TV shows')
+    }
+  }
+)
+
+export const fetchPeople = createAsyncThunk(
+  'movies/fetchPeople',
+  async (page = 1, { rejectWithValue }) => {
+    try {
+      const response = await getTrendingPeople(page)
+      return response.data
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to fetch people')
+    }
   }
 )
 
@@ -97,6 +133,24 @@ const moviesSlice = createSlice({
 
       .addCase(fetchGenres.rejected, (state) => {
         state.genresLoading = false
+      })
+
+      .addCase(fetchMovies.fulfilled, (state, action) => {
+        state.movies = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.results || []
+      })
+
+      .addCase(fetchTV.fulfilled, (state, action) => {
+        state.tvShows = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.results || []
+      })
+
+      .addCase(fetchPeople.fulfilled, (state, action) => {
+        state.people = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.results || []
       })
   },
 })
