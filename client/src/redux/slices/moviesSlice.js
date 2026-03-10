@@ -8,13 +8,15 @@ export const fetchTrending = createAsyncThunk(
       const response = await getTrending()
       return response.data
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Failed to fetch trending')
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to fetch trending'
+      )
     }
   },
   {
     condition: (_, { getState }) => {
       const { movies } = getState()
-      // Skip fetch if already loading or we already have the data
+
       if (movies.loading || movies.trending.length > 0) {
         return false
       }
@@ -29,12 +31,15 @@ export const fetchGenres = createAsyncThunk(
       const response = await getGenres()
       return response.data
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Failed to fetch genres')
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to fetch genres'
+      )
     }
   },
   {
     condition: (_, { getState }) => {
       const { movies } = getState()
+
       if (movies.genresLoading || movies.genres.length > 0) {
         return false
       }
@@ -44,6 +49,7 @@ export const fetchGenres = createAsyncThunk(
 
 const moviesSlice = createSlice({
   name: 'movies',
+
   initialState: {
     trending: [],
     genres: [],
@@ -51,28 +57,44 @@ const moviesSlice = createSlice({
     genresLoading: false,
     error: null,
   },
+
   reducers: {},
+
   extraReducers: (builder) => {
     builder
+
       .addCase(fetchTrending.pending, (state) => {
         state.loading = true
         state.error = null
       })
+
       .addCase(fetchTrending.fulfilled, (state, action) => {
         state.loading = false
-        state.trending = action.payload
+
+        // TMDB returns { page, results, total_pages }
+        state.trending = Array.isArray(action.payload?.results)
+          ? action.payload.results
+          : []
       })
+
       .addCase(fetchTrending.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload
       })
+
       .addCase(fetchGenres.pending, (state) => {
         state.genresLoading = true
       })
+
       .addCase(fetchGenres.fulfilled, (state, action) => {
         state.genresLoading = false
-        state.genres = action.payload
+
+        // TMDB returns { genres: [] }
+        state.genres = Array.isArray(action.payload?.genres)
+          ? action.payload.genres
+          : []
       })
+
       .addCase(fetchGenres.rejected, (state) => {
         state.genresLoading = false
       })
