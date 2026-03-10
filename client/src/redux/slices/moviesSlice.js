@@ -52,6 +52,9 @@ const moviesSlice = createSlice({
 
   initialState: {
     trending: [],
+    movies: [],
+    tvShows: [],
+    people: [],
     genres: [],
     loading: false,
     genresLoading: false,
@@ -70,11 +73,10 @@ const moviesSlice = createSlice({
 
       .addCase(fetchTrending.fulfilled, (state, action) => {
         state.loading = false
-
-        // TMDB returns { page, results, total_pages }
-        state.trending = Array.isArray(action.payload?.results)
-          ? action.payload.results
-          : []
+        // Normalize response: already .results from backend, but add safety
+        state.trending = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.results || []
       })
 
       .addCase(fetchTrending.rejected, (state, action) => {
@@ -88,11 +90,9 @@ const moviesSlice = createSlice({
 
       .addCase(fetchGenres.fulfilled, (state, action) => {
         state.genresLoading = false
-
-        // TMDB returns { genres: [] }
-        state.genres = Array.isArray(action.payload?.genres)
-          ? action.payload.genres
-          : []
+        state.genres = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.genres || []
       })
 
       .addCase(fetchGenres.rejected, (state) => {

@@ -1,6 +1,45 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import api from '../services/api' // Use customized axios instance
+import axios from 'axios'
 
-const TrailerModal = ({ trailerKey, title, onClose }) => {
+const TrailerModal = ({ movieId, title, onClose }) => {
+  const [trailerKey, setTrailerKey] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTrailer = async () => {
+      if (!movieId) {
+        setLoading(false)
+        return
+      }
+      try {
+        const apiKey = import.meta.env.VITE_TMDB_API_KEY
+        if (!apiKey) {
+           console.error("TMDB API Key missing")
+           setLoading(false)
+           return
+        }
+        const res = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${apiKey}`)
+        
+        const videos = res.data?.results || []
+        
+        // Find specific trailer or fallback to any YouTube video
+        const trailer = videos.find((v) => v.type === "Trailer" && v.site === "YouTube") 
+          || videos.find((v) => v.site === "YouTube");
+          
+        if (trailer) {
+           setTrailerKey(trailer.key)
+        }
+      } catch (error) {
+        console.error("Error fetching trailer:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTrailer()
+  }, [movieId])
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose()
@@ -15,7 +54,7 @@ const TrailerModal = ({ trailerKey, title, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      className="fixed top-0 left-0 w-[100vw] h-[100vh] z-[9999] flex items-center justify-center overflow-hidden"
       role="dialog"
       aria-modal="true"
       aria-label={`Trailer: ${title}`}
@@ -30,8 +69,8 @@ const TrailerModal = ({ trailerKey, title, onClose }) => {
 
       {/* Modal box */}
       <div
-        className="relative w-full max-w-4xl rounded-2xl overflow-hidden z-10"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        className="relative w-[90%] max-w-[900px] rounded-2xl overflow-hidden z-10 flex flex-col shadow-2xl"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', maxHeight: '90vh' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
@@ -69,7 +108,7 @@ const TrailerModal = ({ trailerKey, title, onClose }) => {
 
         {/* Video or fallback */}
         <div
-          className="relative w-full"
+          className="relative w-full shrink-0 bg-black"
           style={{ paddingBottom: '56.25%' /* 16:9 */ }}
         >
           {trailerKey ? (

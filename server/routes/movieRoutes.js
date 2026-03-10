@@ -10,6 +10,8 @@ const {
   getLatestSeries,
   getTrendingTV,
   getTrendingPeople,
+  discoverMovies,
+  discoverTV,
   searchMovies,
   getMovieDetails,
   getGenres,
@@ -24,6 +26,8 @@ router.get("/hollywood", getHollywoodMovies);
 router.get("/anime", getAnimeMovies);
 router.get("/latest/movies", getLatestMovies);
 router.get("/latest/series", getLatestSeries);
+router.get("/discover/movies", discoverMovies);
+router.get("/discover/tv", discoverTV);
 router.get("/search", searchMovies);
 router.get("/genres", getGenres);
 router.get("/:id", getMovieDetails);

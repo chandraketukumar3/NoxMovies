@@ -11,7 +11,7 @@ const getTrendingMovies = async (req, res) => {
       `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}&page=${page}`
     );
 
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching trending movies" });
   }
@@ -24,7 +24,7 @@ const getBollywoodMovies = async (req, res) => {
     const response = await axios.get(
       `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_original_language=hi&page=${page}&sort_by=popularity.desc`
     );
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching Bollywood movies" });
   }
@@ -37,7 +37,7 @@ const getHollywoodMovies = async (req, res) => {
     const response = await axios.get(
       `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_original_language=en&page=${page}&sort_by=popularity.desc`
     );
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching Hollywood movies" });
   }
@@ -50,7 +50,7 @@ const getAnimeMovies = async (req, res) => {
     const response = await axios.get(
       `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_original_language=ja&with_genres=16&page=${page}&sort_by=popularity.desc`
     );
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching Anime movies" });
   }
@@ -63,7 +63,7 @@ const getLatestMovies = async (req, res) => {
     const response = await axios.get(
       `https://api.themoviedb.org/3/movie/now_playing?api_key=${TMDB_API_KEY}&page=${page}`
     );
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching latest movies" });
   }
@@ -76,7 +76,7 @@ const getLatestSeries = async (req, res) => {
     const response = await axios.get(
       `https://api.themoviedb.org/3/tv/on_the_air?api_key=${TMDB_API_KEY}&page=${page}`
     );
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching latest series" });
   }
@@ -89,7 +89,7 @@ const getTrendingTV = async (req, res) => {
     const response = await axios.get(
       `https://api.themoviedb.org/3/trending/tv/week?api_key=${TMDB_API_KEY}&page=${page}`
     );
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching trending TV shows" });
   }
@@ -102,11 +102,42 @@ const getTrendingPeople = async (req, res) => {
     const response = await axios.get(
       `https://api.themoviedb.org/3/trending/person/week?api_key=${TMDB_API_KEY}&page=${page}`
     );
-    res.json(response.data);
+    res.json(response.data.results);
   } catch (error) {
     res.status(500).json({ message: "Error fetching trending people" });
   }
 };
+
+// Discover Movies
+const discoverMovies = async (req, res) => {
+  try {
+    const page = req.query.page || 1;
+    const with_genres = req.query.with_genres;
+    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&page=${page}`;
+    if (with_genres) url += `&with_genres=${with_genres}`;
+    
+    const response = await axios.get(url);
+    res.json(response.data.results);
+  } catch (error) {
+    res.status(500).json({ message: "Error discovering movies" });
+  }
+};
+
+// Discover TV Shows
+const discoverTV = async (req, res) => {
+  try {
+    const page = req.query.page || 1;
+    const with_genres = req.query.with_genres;
+    let url = `https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_API_KEY}&page=${page}`;
+    if (with_genres) url += `&with_genres=${with_genres}`;
+
+    const response = await axios.get(url);
+    res.json(response.data.results);
+  } catch (error) {
+    res.status(500).json({ message: "Error discovering TV shows" });
+  }
+};
+
 
 // Search Movies & TV
 const searchMovies = async (req, res) => {
@@ -196,6 +227,8 @@ module.exports = {
   getLatestSeries,
   getTrendingTV,
   getTrendingPeople,
+  discoverMovies,
+  discoverTV,
   searchMovies,
   getMovieDetails,
   getGenres,

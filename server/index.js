@@ -16,15 +16,29 @@ const app = express()
 
 connectDB()
 
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://noxxmovies.vercel.app',
-    'https://nox-movies-weld.vercel.app'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
-}))
+const allowedOrigins = [
+  "https://noxxmovies.vercel.app",
+  "https://noxxmovies.vercel.app/",
+  "http://localhost:5173"
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin) || origin?.includes(".vercel.app")) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  next();
+});
 
 app.use(express.json())
 app.use(cookieParser())
